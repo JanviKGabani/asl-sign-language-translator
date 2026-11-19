@@ -1,0 +1,7 @@
+# Dependencies for the Streamlit demo (app.py) only.
+# The model is exported to NumPy, so TensorFlow is NOT needed at serve time.
+# For the full training pipeline see requirements-train.txt
+streamlit==1.40.2
+mediapipe==0.10.21
+numpy==1.26.4
+pillow==11.0.0

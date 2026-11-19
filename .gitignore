@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+.venv/
+venv/
+
+# Processed artefacts are rebuilt by preprocessing/preprocess.py
+data/processed/
+
+codes_collection/
+doc_collection/
+
+*.zip
