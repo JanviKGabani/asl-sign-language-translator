@@ -5,3 +5,4 @@ streamlit==1.40.2
 mediapipe==0.10.21
 numpy==1.26.4
 pillow==11.0.0
+pandas==2.2.3

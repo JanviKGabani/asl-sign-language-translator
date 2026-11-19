@@ -89,12 +89,41 @@ with st.sidebar:
 st.info("**J and Z involve motion in real ASL.** This model sees a single frame, so it reads "
         "their static hand shape only.", icon="ℹ️")
 
-tab_cam, tab_up = st.tabs(["📷 Use your camera", "📁 Upload a photo"])
+tab_cam, tab_up, tab_sample = st.tabs(
+    ["📷 Use your camera", "📁 Upload a photo", "🧪 Try a recorded sample"])
 with tab_cam:
     shot = st.camera_input("Make a letter with one hand, then take a photo")
 with tab_up:
     upload = st.file_uploader("Photo of a hand making an ASL letter",
                               type=["jpg", "jpeg", "png", "webp"])
+with tab_sample:
+    st.caption("No camera to hand? These are real recorded landmark frames from the dataset — "
+               "the last frame of each letter's run. This skips MediaPipe and feeds the "
+               "landmarks straight to the classifier.")
+    sample_letter = st.selectbox("Letter to classify", list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+    run_sample = st.button("Classify this recorded frame")
+
+if run_sample:
+    import pandas as pd
+    lm_cols = [f"lm{i}_{a}" for i in range(21) for a in ("x", "y", "z")]
+    row = pd.read_csv(ROOT / "data" / "samples.csv").set_index("label").loc[sample_letter]
+    feature = landmarks_to_feature(
+        row[lm_cols].values.astype(np.float32).reshape(21, 3), str(row["handedness"])
+    )[None, :]
+    top = load_model().predict_top(feature, k=3)
+    hit = top[0][0] == sample_letter
+    st.subheader("Prediction")
+    st.markdown(f"# {top[0][0]}")
+    st.caption(f"Confidence {top[0][1]:.1%} · recorded from a {row['handedness'].lower()} hand")
+    if hit:
+        st.success(f"Correct — the recorded label is {sample_letter}.")
+    else:
+        st.error(f"Wrong — the recorded label is {sample_letter}.")
+    st.markdown("**Next most likely**")
+    for lab, p in top[1:]:
+        st.write(f"{lab} — {p:.1%}")
+        st.progress(min(p, 1.0))
+    st.stop()
 
 source = shot or upload
 if source is None:
